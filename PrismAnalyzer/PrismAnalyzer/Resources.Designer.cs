@@ -61,7 +61,7 @@ namespace PrismAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Available to generate binding params..
+        ///   Looks up a localized string similar to Possible to create binding properties..
         /// </summary>
         internal static string AnalyzerDescription {
             get {
@@ -79,7 +79,7 @@ namespace PrismAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate binding..
+        ///   Looks up a localized string similar to Available to wrap properties in binding..
         /// </summary>
         internal static string AnalyzerTitle {
             get {

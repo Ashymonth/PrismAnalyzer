@@ -12,14 +12,14 @@
     <PackageVersion>1.0.0.0</PackageVersion>
     <Authors>Pavel Kobjakov</Authors>
     <PackageLicenseUrl></PackageLicenseUrl>
-    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Ashymonth/PrismAnalyzer</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/Ashymonth/PrismAnalyzer</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>PrismAnalyzer for wrapping models in binding models.</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
-    <PackageTags>PrismAnalyzer, analyzers</PackageTags>
+    <PackageTags>analyzers, roslyn</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
 
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
@@ -27,6 +27,8 @@
     <Company />
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <PackageIcon></PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>

@@ -10,6 +10,9 @@ namespace PrismAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class PrismAnalyzerAnalyzer : DiagnosticAnalyzer
     {
+        private const string BaseModelType = "AModel";
+        private const string BaseEntityType = "AEntity";
+
         public const string DiagnosticId = "PrismAnalyzer";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
@@ -39,7 +42,7 @@ namespace PrismAnalyzer
 
             var baseType = classDeclaration.BaseList;
             var isModel = baseType.Types.FirstOrDefault()?.GetFirstToken();
-            if (!isModel.HasValue || isModel.Value.ValueText != "AModel")
+            if (!isModel.HasValue || isModel.Value.ValueText != BaseModelType)
             {
                 return;
             }
@@ -69,7 +72,7 @@ namespace PrismAnalyzer
                 return;
             }
 
-            if (injectedClassType.BaseType.Name != "AEntity")
+            if (injectedClassType.BaseType.Name != BaseEntityType)
             {
                 return;
             }

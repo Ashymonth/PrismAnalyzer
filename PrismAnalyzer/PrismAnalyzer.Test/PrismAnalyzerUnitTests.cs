@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
+using Prism.Mvvm;
 using VerifyCS = PrismAnalyzer.Test.CSharpCodeFixVerifier<
     PrismAnalyzer.PrismAnalyzerAnalyzer,
     PrismAnalyzer.PrismAnalyzerCodeFixProvider>;
@@ -85,7 +86,7 @@ public string Name {get; set;}
     {
         public int Id { get; set; }
     }
-    public class AModel<TEntity> where TEntity : AEntity
+    public class AModel<TEntity> : BindableBase where TEntity : AEntity
     {
         protected AModel(TEntity entity)
         {
@@ -104,10 +105,10 @@ public string Name {get; set;}
     {
         public ImageModel(ImageEntity entity) : base(entity)
         {
-            
+
         }
 
-        public string As { get; set; }
+        public string Name { get => Entity.Name; set { Entity.Name = value; RaisePropertyChanged(); } }
     }
 }
 
