@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using Prism.Mvvm;
 using VerifyCS = PrismAnalyzer.Test.CSharpCodeFixVerifier<
@@ -109,6 +110,8 @@ public string Name {get; set;}
         }
 
         public string Name { get => Entity.Name; set { Entity.Name = value; RaisePropertyChanged(); } }
+
+        public ICollection<string> Ty { get; set; }
     }
 }
 

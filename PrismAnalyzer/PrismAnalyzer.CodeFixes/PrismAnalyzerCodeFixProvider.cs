@@ -75,9 +75,7 @@ namespace PrismAnalyzer
 
             foreach (var (propName, propType) in properties)
             {
-
-                var type = propType.Type.ToString().Split('.');
-                var result1 = SyntaxFactory.ParseMemberDeclaration(string.Format(PropertyTemplate, type.Last(), propName));
+                var result1 = SyntaxFactory.ParseMemberDeclaration(string.Format(PropertyTemplate, propType.Type, propName));
 
                 result.Add(result1);
             }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <PackageId>PrismAnalyzer</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
+    <PackageVersion>1.0.0.2</PackageVersion>
     <Authors>Pavel Kobjakov</Authors>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/Ashymonth/PrismAnalyzer</PackageProjectUrl>
@@ -17,7 +17,7 @@
     <RepositoryUrl>https://github.com/Ashymonth/PrismAnalyzer</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>PrismAnalyzer for wrapping models in binding models.</Description>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>Names fix.</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>analyzers, roslyn</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
@@ -29,6 +29,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <PackageIcon></PackageIcon>
+
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+
+    <FileVersion>1.0.0.1</FileVersion>
+
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
