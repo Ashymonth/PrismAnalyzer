@@ -10,8 +10,8 @@ namespace PrismAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class PrismAnalyzerAnalyzer : DiagnosticAnalyzer
     {
-        private const string BaseModelType = "AModel";
-        private const string BaseEntityType = "AEntity";
+        private const string BaseModelType = "Model";
+        private const string BaseEntityType = "Entity";
 
         public const string DiagnosticId = "PrismAnalyzer";
 
@@ -42,7 +42,7 @@ namespace PrismAnalyzer
 
             var baseType = classDeclaration.BaseList;
             var isModel = baseType.Types.FirstOrDefault()?.GetFirstToken();
-            if (!isModel.HasValue || isModel.Value.ValueText != BaseModelType)
+            if (!isModel.HasValue || !isModel.Value.Text.Contains(BaseModelType))
             {
                 return;
             }
@@ -72,7 +72,7 @@ namespace PrismAnalyzer
                 return;
             }
 
-            if (injectedClassType.BaseType.Name != BaseEntityType)
+            if (!injectedClassType.BaseType.Name.Contains(BaseEntityType))
             {
                 return;
             }
