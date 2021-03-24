@@ -10,8 +10,8 @@ namespace PrismAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class PrismAnalyzerAnalyzer : DiagnosticAnalyzer
     {
-        private const string BaseModelType = "Model";
-        private const string BaseEntityType = "Entity";
+        private const string ModelNameConvention = "Model";
+        private const string EntityNameConvention = "Entity";
 
         public const string DiagnosticId = "PrismAnalyzer";
 
@@ -28,11 +28,10 @@ namespace PrismAnalyzer
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-
-            context.RegisterSyntaxNodeAction(AnalyzeSymbol, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeClassConstructor, SyntaxKind.ClassDeclaration);
         }
 
-        private static void AnalyzeSymbol(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeClassConstructor(SyntaxNodeAnalysisContext context)
         {
             var classDeclaration = (ClassDeclarationSyntax)context.Node;
             if (classDeclaration.BaseList == null)
@@ -42,12 +41,13 @@ namespace PrismAnalyzer
 
             var baseType = classDeclaration.BaseList;
             var isModel = baseType.Types.FirstOrDefault()?.GetFirstToken();
-            if (!isModel.HasValue || !isModel.Value.Text.Contains(BaseModelType))
+            if (!isModel.HasValue || !isModel.Value.Text.Contains(ModelNameConvention))
             {
                 return;
             }
 
             var semanticModel = context.SemanticModel;
+          var x =  semanticModel.LookupNamespacesAndTypes(0);
 
             var constructor = classDeclaration.Members.FirstOrDefault(syntax => syntax.Kind() == SyntaxKind.ConstructorDeclaration);
 
@@ -72,11 +72,11 @@ namespace PrismAnalyzer
                 return;
             }
 
-            if (!injectedClassType.BaseType.Name.Contains(BaseEntityType))
+            if (!injectedClassType.BaseType.Name.Contains(EntityNameConvention))
             {
                 return;
             }
-
+            
             var result = Helper.GetProperties(injectedClassType, classDeclaration, semanticModel);
 
             if (result.Any())

@@ -27,30 +27,24 @@ namespace PrismAnalyzer
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf()
+            var declaration = root!.FindToken(diagnosticSpan.Start).Parent!.AncestorsAndSelf()
                 .OfType<ClassDeclarationSyntax>().First();
 
-            var constructorDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf()
+            var constructorDeclaration = root.FindToken(diagnosticSpan.Start).Parent!.AncestorsAndSelf()
                 .OfType<ConstructorDeclarationSyntax>().First();
 
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: CodeFixResources.CodeFixTitle,
                     createChangedDocument: ct =>
-                        MakeUppercaseAsync(context.Document, declaration, constructorDeclaration, ct),
+                        CreateProperties(context.Document, declaration, constructorDeclaration, root, ct),
                     equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
                 diagnostic);
         }
 
-        private async Task<Document> MakeUppercaseAsync(Document document, ClassDeclarationSyntax typeDeclaration,
-            ConstructorDeclarationSyntax constructorDeclaration, CancellationToken ct)
+        private static async Task<Document> CreateProperties(Document document, ClassDeclarationSyntax typeDeclaration,
+            ConstructorDeclarationSyntax constructorDeclaration, SyntaxNode root, CancellationToken ct)
         {
-            var oldRoot = await document.GetSyntaxRootAsync(ct);
-            if (oldRoot == null)
-            {
-                return document;
-            }
-
             var semanticModel = await document.GetSemanticModelAsync(ct);
 
             var parameters = constructorDeclaration.ParameterList.Parameters;
@@ -64,110 +58,87 @@ namespace PrismAnalyzer
 
             var properties = Helper.GetPropertiesWithTypes(paramSymbol.Type, typeDeclaration, semanticModel);
 
-            typeDeclaration = typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(properties.Select((tuple, i) => Test(tuple.Name, tuple.Item2.Name))));
+            typeDeclaration = typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(properties.Select(tuple => Test(tuple.Name, tuple.Type))));
 
-            var root = oldRoot.InsertNodesAfter(constructorDeclaration, typeDeclaration.Members);
+            var newRoot = root.InsertNodesAfter(constructorDeclaration, typeDeclaration.Members);
 
-            return document.WithSyntaxRoot(root);
+            return document.WithSyntaxRoot(newRoot);
         }
 
-        private static PropertyDeclarationSyntax Test(string propName, string propType)
+        private static string SimplifyNameSpace(ITypeSymbol type)
         {
+            var typeName = type.ToString();
+            var nameSpace = type.ContainingNamespace;
+            var nameSpaceName = nameSpace.Name;
+            typeName = typeName.Replace($"{nameSpaceName}.", string.Empty);
+
+            return typeName;
+        }
+
+        private static PropertyDeclarationSyntax Test(string propName, ITypeSymbol propType)
+        {
+            var x = SimplifyNameSpace(propType);
+
             return PropertyDeclaration(
                     IdentifierName(
                         Identifier(
                             TriviaList(),
-                            propType,
+                            x,
                             TriviaList(
-                                Space
-                            )
-                        )
-                    ),
+                                Space))),
                     Identifier(
                         TriviaList(),
                         propName,
                         TriviaList(
-                            CarriageReturnLineFeed
-                        )
-                    )
-                )
+                            CarriageReturnLineFeed)))
                 .WithModifiers(
                     TokenList(
                         Token(
-                            TriviaList(
-                                new[]
-                                {
-                                    CarriageReturnLineFeed,
-                                    Whitespace("        ")
-                                }
-                            ),
+                            TriviaList(CarriageReturnLineFeed, Whitespace("        ")),
                             SyntaxKind.PublicKeyword,
                             TriviaList(
-                                Space
-                            )
-                        )
-                    )
-                )
+                                Space))))
                 .WithAccessorList(
                     AccessorList(
-                            List<AccessorDeclarationSyntax>(
-                                new AccessorDeclarationSyntax[]
+                            List(
+                                new[]
                                 {
                                     AccessorDeclaration(
-                                            SyntaxKind.GetAccessorDeclaration
-                                        )
+                                            SyntaxKind.GetAccessorDeclaration)
                                         .WithKeyword(
                                             Token(
                                                 TriviaList(
-                                                    Whitespace("            ")
-                                                ),
+                                                    Whitespace("            ")),
                                                 SyntaxKind.GetKeyword,
                                                 TriviaList(
-                                                    Space
-                                                )
-                                            )
-                                        )
+                                                    Space)))
                                         .WithExpressionBody(
                                             ArrowExpressionClause(
                                                     MemberAccessExpression(
                                                         SyntaxKind.SimpleMemberAccessExpression,
                                                         IdentifierName("Entity"),
-                                                        IdentifierName(propName)
-                                                    )
-                                                )
+                                                        IdentifierName(propName)))
                                                 .WithArrowToken(
                                                     Token(
                                                         TriviaList(),
                                                         SyntaxKind.EqualsGreaterThanToken,
                                                         TriviaList(
-                                                            Space
-                                                        )
-                                                    )
-                                                )
-                                        )
+                                                            Space))))
                                         .WithSemicolonToken(
                                             Token(
                                                 TriviaList(),
                                                 SyntaxKind.SemicolonToken,
                                                 TriviaList(
-                                                    CarriageReturnLineFeed
-                                                )
-                                            )
-                                        ),
+                                                    CarriageReturnLineFeed))),
                                     AccessorDeclaration(
-                                            SyntaxKind.SetAccessorDeclaration
-                                        )
+                                            SyntaxKind.SetAccessorDeclaration)
                                         .WithKeyword(
                                             Token(
                                                 TriviaList(
-                                                    Whitespace("            ")
-                                                ),
+                                                    Whitespace("            ")),
                                                 SyntaxKind.SetKeyword,
                                                 TriviaList(
-                                                    CarriageReturnLineFeed
-                                                )
-                                            )
-                                        )
+                                                    CarriageReturnLineFeed)))
                                         .WithBody(
                                             Block(
                                                     ExpressionStatement(
@@ -178,113 +149,71 @@ namespace PrismAnalyzer
                                                                         IdentifierName(
                                                                             Identifier(
                                                                                 TriviaList(
-                                                                                    Whitespace("                ")
-                                                                                ),
+                                                                                    Whitespace("                ")),
                                                                                 "Entity",
-                                                                                TriviaList()
-                                                                            )
-                                                                        ),
+                                                                                TriviaList())),
                                                                         IdentifierName(
                                                                             Identifier(
                                                                                 TriviaList(),
                                                                                 propName,
                                                                                 TriviaList(
-                                                                                    Space
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    ),
-                                                                    IdentifierName("value")
-                                                                )
+                                                                                    Space)))),
+                                                                    IdentifierName("value"))
                                                                 .WithOperatorToken(
                                                                     Token(
                                                                         TriviaList(),
                                                                         SyntaxKind.EqualsToken,
                                                                         TriviaList(
-                                                                            Space
-                                                                        )
-                                                                    )
-                                                                )
-                                                        )
+                                                                            Space))))
                                                         .WithSemicolonToken(
                                                             Token(
                                                                 TriviaList(),
                                                                 SyntaxKind.SemicolonToken,
                                                                 TriviaList(
-                                                                    CarriageReturnLineFeed
-                                                                )
-                                                            )
-                                                        ),
+                                                                    CarriageReturnLineFeed))),
                                                     ExpressionStatement(
                                                             InvocationExpression(
                                                                 IdentifierName(
                                                                     Identifier(
                                                                         TriviaList(
-                                                                            Whitespace("                ")
-                                                                        ),
+                                                                            Whitespace("                ")),
                                                                         "RaisePropertyChanged",
-                                                                        TriviaList()
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
+                                                                        TriviaList()))))
                                                         .WithSemicolonToken(
                                                             Token(
                                                                 TriviaList(),
                                                                 SyntaxKind.SemicolonToken,
                                                                 TriviaList(
-                                                                    CarriageReturnLineFeed
-                                                                )
-                                                            )
-                                                        )
-                                                )
+                                                                    CarriageReturnLineFeed))))
                                                 .WithOpenBraceToken(
                                                     Token(
                                                         TriviaList(
-                                                            Whitespace("            ")
-                                                        ),
+                                                            Whitespace("            ")),
                                                         SyntaxKind.OpenBraceToken,
                                                         TriviaList(
-                                                            CarriageReturnLineFeed
-                                                        )
-                                                    )
-                                                )
+                                                            CarriageReturnLineFeed)))
                                                 .WithCloseBraceToken(
                                                     Token(
                                                         TriviaList(
-                                                            Whitespace("            ")
-                                                        ),
+                                                            Whitespace("            ")),
                                                         SyntaxKind.CloseBraceToken,
                                                         TriviaList(
-                                                            CarriageReturnLineFeed
-                                                        )
-                                                    )
-                                                )
-                                        )
-                                }
-                            )
-                        )
+                                                            CarriageReturnLineFeed))))
+                                }))
                         .WithOpenBraceToken(
                             Token(
                                 TriviaList(
-                                    Whitespace("        ")
-                                ),
+                                    Whitespace("        ")),
                                 SyntaxKind.OpenBraceToken,
                                 TriviaList(
-                                    CarriageReturnLineFeed
-                                )
-                            )
-                        )
+                                    CarriageReturnLineFeed)))
                         .WithCloseBraceToken(
                             Token(
                                 TriviaList(
-                                    Whitespace("        ")
-                                ),
+                                    Whitespace("        ")),
                                 SyntaxKind.CloseBraceToken,
-                                TriviaList()
-                            )
-                        )
-                );
+                                TriviaList(
+                                    CarriageReturnLineFeed))));
         }
     }
 }

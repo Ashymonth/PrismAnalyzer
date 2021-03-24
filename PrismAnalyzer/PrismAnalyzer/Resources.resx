@@ -118,15 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AnalyzerDescription" xml:space="preserve">
-    <value>Possible to create binding properties.</value>
+    <value>Available to generate properties with binding.</value>
     <comment>An optional longer localizable description of the diagnostic.</comment>
   </data>
   <data name="AnalyzerMessageFormat" xml:space="preserve">
-    <value>Type name '{0}' contains params to binding.</value>
+    <value>Class contains properties, that not using to binding</value>
     <comment>The format-able message the diagnostic displays.</comment>
   </data>
   <data name="AnalyzerTitle" xml:space="preserve">
-    <value>Available to wrap properties in binding.</value>
+    <value>Available to generate properties with binding</value>
     <comment>The title of the diagnostic.</comment>
   </data>
 </root>

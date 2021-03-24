@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,14 +19,14 @@ namespace PrismAnalyzer
             return entityProperties.Except(modelProperties);
         }
 
-        public static IEnumerable<(string Name, IPropertySymbol)> GetPropertiesWithTypes(ITypeSymbol typeSymbol, ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel)
+        public static IEnumerable<(string Name, ITypeSymbol Type)> GetPropertiesWithTypes(ITypeSymbol typeSymbol, ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel)
         {
             var entityProperties = typeSymbol.GetMembers().Where(symbol => symbol.Kind == SymbolKind.Property);
 
             var modelProperties = classDeclarationSyntax.Members.OfType<PropertyDeclarationSyntax>()
                 .Select(syntax => semanticModel.GetDeclaredSymbol(syntax)?.Name);
 
-            return entityProperties.Select(symbol => (symbol.Name, (IPropertySymbol)symbol))
+            return entityProperties.Select(symbol => (symbol.Name, ((IPropertySymbol)symbol).Type))
                 .Where(arg => !modelProperties.Contains(arg.Name));
         }
     }
