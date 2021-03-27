@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -27,63 +28,73 @@ namespace PrismAnalyzer
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-            var declaration = root!.FindToken(diagnosticSpan.Start).Parent!.AncestorsAndSelf()
+            var usingDeclaration = root!.DescendantNodesAndSelf().OfType<UsingDirectiveSyntax>().ToList();
+
+            var classDeclaration = root!.FindToken(diagnosticSpan.Start).Parent!.AncestorsAndSelf()
                 .OfType<ClassDeclarationSyntax>().First();
 
             var constructorDeclaration = root.FindToken(diagnosticSpan.Start).Parent!.AncestorsAndSelf()
                 .OfType<ConstructorDeclarationSyntax>().First();
 
+            root.TrackNodes(classDeclaration);
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: CodeFixResources.CodeFixTitle,
                     createChangedDocument: ct =>
-                        CreateProperties(context.Document, declaration, constructorDeclaration, root, ct),
+                        CreateProperties(context.Document, usingDeclaration, classDeclaration, constructorDeclaration, root, ct),
                     equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
                 diagnostic);
         }
 
-        private static async Task<Document> CreateProperties(Document document, ClassDeclarationSyntax typeDeclaration,
+        private static async Task<Document> CreateProperties(Document document, List<UsingDirectiveSyntax> usingDeclaration, ClassDeclarationSyntax classDeclaration,
             ConstructorDeclarationSyntax constructorDeclaration, SyntaxNode root, CancellationToken ct)
         {
+            var usingToAdd = new List<UsingDirectiveSyntax>();
             var semanticModel = await document.GetSemanticModelAsync(ct);
 
             var parameters = constructorDeclaration.ParameterList.Parameters;
 
             var paramSymbol = semanticModel.GetDeclaredSymbol(parameters[0]);
 
-            if (paramSymbol == null)
-            {
-                return document;
-            }
+            var properties = Helper.GetPropertiesWithTypes(paramSymbol!.Type, classDeclaration, semanticModel);
 
-            var properties = Helper.GetPropertiesWithTypes(paramSymbol.Type, typeDeclaration, semanticModel);
+            classDeclaration = classDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(properties.Select(tuple =>
+                 CreateProperty(tuple.Name, tuple.Type, usingDeclaration, usingToAdd))));
 
-            typeDeclaration = typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(properties.Select(tuple => Test(tuple.Name, tuple.Type))));
+            root = root.InsertNodesAfter(constructorDeclaration, classDeclaration.Members);
+            root = (root as CompilationUnitSyntax)!.AddUsings(usingToAdd.ToArray());
 
-            var newRoot = root.InsertNodesAfter(constructorDeclaration, typeDeclaration.Members);
-
-            return document.WithSyntaxRoot(newRoot);
+            return document.WithSyntaxRoot(root);
         }
 
-        private static string SimplifyNameSpace(ITypeSymbol type)
+        private static string SimplifyNameSpaces(ITypeSymbol type, List<UsingDirectiveSyntax> existedUsing, List<UsingDirectiveSyntax> usingToAdd)
         {
             var typeName = type.ToString();
             var nameSpace = type.ContainingNamespace;
-            var nameSpaceName = nameSpace.Name;
-            typeName = typeName.Replace($"{nameSpaceName}.", string.Empty);
+            if (nameSpace == null)
+            {
+                return typeName;
+            }
 
-            return typeName;
+            var nameSpaceName = nameSpace.ToString();
+
+            var usingStatement = existedUsing.FirstOrDefault(syntax => syntax.Name.ToString().Equals(nameSpaceName));
+            if (usingStatement == null)
+            {
+                usingToAdd.Add(UsingDirective(ParseName(nameSpaceName)));
+            }
+
+            return typeName.Replace(nameSpaceName, string.Empty).Trim('.');
         }
 
-        private static PropertyDeclarationSyntax Test(string propName, ITypeSymbol propType)
+        private static PropertyDeclarationSyntax CreateProperty(string propName, ITypeSymbol propType, List<UsingDirectiveSyntax> usingDirectiveSyntax, List<UsingDirectiveSyntax> usingToAdd)
         {
-            var x = SimplifyNameSpace(propType);
-
             return PropertyDeclaration(
                     IdentifierName(
                         Identifier(
                             TriviaList(),
-                            x,
+                            SimplifyNameSpaces(propType, usingDirectiveSyntax, usingToAdd),
                             TriviaList(
                                 Space))),
                     Identifier(
