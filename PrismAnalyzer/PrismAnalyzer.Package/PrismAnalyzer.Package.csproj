@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <PackageId>PrismAnalyzer</PackageId>
-    <PackageVersion>1.0.0.4</PackageVersion>
+    <PackageVersion>1.0.0.5</PackageVersion>
     <Authors>Pavel Kobjakov</Authors>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/Ashymonth/PrismAnalyzer</PackageProjectUrl>
