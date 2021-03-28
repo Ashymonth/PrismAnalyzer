@@ -50,7 +50,7 @@ namespace PrismAnalyzer
         private static async Task<Document> CreateProperties(Document document, List<UsingDirectiveSyntax> usingDeclaration, ClassDeclarationSyntax classDeclaration,
             ConstructorDeclarationSyntax constructorDeclaration, SyntaxNode root, CancellationToken ct)
         {
-            var usingToAdd = new HashSet<UsingDirectiveSyntax>();
+            var usingToAdd = new HashSet<UsingDirectiveSyntax>(new UsingComparer());
             var semanticModel = await document.GetSemanticModelAsync(ct);
 
             var parameters = constructorDeclaration.ParameterList.Parameters;
