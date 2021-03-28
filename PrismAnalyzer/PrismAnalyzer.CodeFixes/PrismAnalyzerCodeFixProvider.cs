@@ -50,7 +50,7 @@ namespace PrismAnalyzer
         private static async Task<Document> CreateProperties(Document document, List<UsingDirectiveSyntax> usingDeclaration, ClassDeclarationSyntax classDeclaration,
             ConstructorDeclarationSyntax constructorDeclaration, SyntaxNode root, CancellationToken ct)
         {
-            var usingToAdd = new List<UsingDirectiveSyntax>();
+            var usingToAdd = new HashSet<UsingDirectiveSyntax>();
             var semanticModel = await document.GetSemanticModelAsync(ct);
 
             var parameters = constructorDeclaration.ParameterList.Parameters;
@@ -68,7 +68,7 @@ namespace PrismAnalyzer
             return document.WithSyntaxRoot(root);
         }
 
-        private static string SimplifyNameSpaces(ITypeSymbol type, List<UsingDirectiveSyntax> existedUsing, List<UsingDirectiveSyntax> usingToAdd)
+        private static string SimplifyNameSpaces(ITypeSymbol type, List<UsingDirectiveSyntax> existedUsing, HashSet<UsingDirectiveSyntax> usingToAdd)
         {
             var typeName = type.ToString();
             var nameSpace = type.ContainingNamespace;
@@ -88,7 +88,7 @@ namespace PrismAnalyzer
             return typeName.Replace(nameSpaceName, string.Empty).Trim('.');
         }
 
-        private static PropertyDeclarationSyntax CreateProperty(string propName, ITypeSymbol propType, List<UsingDirectiveSyntax> usingDirectiveSyntax, List<UsingDirectiveSyntax> usingToAdd)
+        private static PropertyDeclarationSyntax CreateProperty(string propName, ITypeSymbol propType, List<UsingDirectiveSyntax> usingDirectiveSyntax, HashSet<UsingDirectiveSyntax> usingToAdd)
         {
             return PropertyDeclaration(
                     IdentifierName(
