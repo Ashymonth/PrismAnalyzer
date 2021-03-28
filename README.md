@@ -1,5 +1,5 @@
 # PrismAnalyzer
-Allows you to automatically wrap entity class properties in binding models
+Allows you to automatically wrap entity class in binding models
 
 ## Convention
 All classes that will be wrapped in the model must inherit the base class, the name of which must contain "Entitiy".
