@@ -2,9 +2,29 @@
 Allows you to automatically wrap entity class in binding models
 
 ## Convention
-All classes that will be wrapped in the model must inherit the base class, the name of which must contain "Entitiy".
-All classes that are used as wrappers must inherit the base class whose name contains "Model", whose constructor has an instance of the entity, and inherit the base class
+For the analyzer to work, you must have the following code structure.
 
+You should have base class for all entities. The class must contain `entity` in the name.
 
-## Exmaple
+You should have base class for all models. The class must contain `model` in the name.
+
+### Example structure
+
+```
+public abstract class EntityBase
+{
+    public int Id { get; set; }
+}
+
+public abstract class ModelBase<TEntity> : BindableBase where TEntity : EntityBase
+{
+    protected ModelBase(TEntity entity)
+    {
+        Entity = entity;
+    }
+        
+    public TEntity Entity { get; }
+}
+```
+
 ![Analyzer Demo](readme_git.gif)
